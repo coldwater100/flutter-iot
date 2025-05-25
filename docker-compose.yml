@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"               # Map port 8000 on host to 8000 in the container (for local access)
+    restart: unless-stopped      # Automatically restart unless the container is explicitly stopped
+    networks:
+      - app-net                  # Connect to custom user-defined bridge network
+
+  edge_client:
+    build:
+      context: ./edge_client
+    container_name: edge_client
+    environment:
+      - BACKEND_HOST=backend     # Use 'backend' service name for internal communication
+      - BACKEND_PORT=8000
+    restart: unless-stopped
+    depends_on:
+      - backend                  # Ensure backend starts before edge_client
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge               # Define a bridge network for isolated container communication

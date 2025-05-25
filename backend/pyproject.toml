@@ -1,0 +1,23 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "FastAPI backend for IoT system"
+requires-python = ">=3.9"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "requests"
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "httpx", "ruff", "black"]
+
+[tool.setuptools]
+packages = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"

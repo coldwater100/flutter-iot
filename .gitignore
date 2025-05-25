@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+
+# Flutter App
+build/
+.dart_tool/
+.flutter-plugins
+.packages
+.pub-cache/
+.idea/
+*.lock
+
+# Flutter SDK (locally downloaded)
+flutter/
+flutter_*.tar.xz
+
+# Docker
+*.log
+*.pid
+
+# macOS
+.DS_Store

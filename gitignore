@@ -1,0 +1,35 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+.env
+.venv/
+venv/
+*.sqlite3
+*.log
+*.db
+
+# === Flutter ===
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+android/.gradle/
+ios/Pods/
+*.lock
+
+# === VSCode / IDEs ===
+.vscode/
+.idea/
+
+# === Docker ===
+*.pid
+*.log
+
+# === Flutter SDK & Binaries ===
+flutter/
+flutter_*.tar.xz
