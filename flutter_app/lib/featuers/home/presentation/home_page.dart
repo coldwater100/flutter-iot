@@ -5,7 +5,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mainGreen = const Color(0xFF4CAF50);
 
     return Scaffold(
       backgroundColor: Colors.white,

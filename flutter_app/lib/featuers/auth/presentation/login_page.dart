@@ -1,5 +1,10 @@
+// ✅ presentation: 로그인 UI
+// File: features/auth/presentation/login_page.dart
 import 'package:flutter/material.dart';
 import '../../main/presentation/main_page.dart';
+import 'signup_page.dart';
+import '../domain/login_user.dart';
+import '../data/auth_repository_impl.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -11,26 +16,30 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final Color mainGreen = const Color(0xFF4CAF50);
 
-  void _login() {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+  final _loginUser = LoginUser(AuthRepositoryImpl());
 
-    if (email == '1111' && password == '1111') {
+  void _login() async {
+    final email = _emailController.text;
+    final password = _passwordController.text;
+    final token = await _loginUser.execute(email, password);
+
+    if (token != null) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const MainPage()),
+        MaterialPageRoute(builder: (context) => const MainPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('아이디 또는 비밀번호가 틀렸습니다.')),
+        const SnackBar(content: Text('로그인 실패')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final Color mainGreen = const Color(0xFF4CAF50);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -107,7 +116,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const Text("|", style: TextStyle(color: Colors.grey)),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const SignupPage()),
+                        );
+                      },
                       child: Text("회원가입", style: TextStyle(color: mainGreen)),
                     ),
                   ],
