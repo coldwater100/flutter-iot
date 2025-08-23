@@ -1,10 +1,10 @@
-// ✅ presentation: 로그인 UI
-// File: features/auth/presentation/login_page.dart
 import 'package:flutter/material.dart';
 import '../../main/presentation/main_page.dart';
-import 'signup_page.dart';
-import '../domain/login_user.dart';
+import 'signup_step1.dart';
+import '../domain/login_usecase.dart';
 import '../data/auth_repository_impl.dart';
+import '../data/auth_remote_source.dart';
+import '../../qr/presentation/qr_scanner_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,22 +17,45 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _loginUser = LoginUser(AuthRepositoryImpl());
+  final _loginUsecase = LoginUsecase(AuthRepositoryImpl(AuthRemoteSource()));
 
-  void _login() async {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-    final token = await _loginUser.execute(email, password);
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-    if (token != null) {
+    final success = await _loginUsecase.execute(email, password);
+
+    if (success && mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainPage()),
+        MaterialPageRoute(builder: (_) => const MainPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('로그인 실패')),
+        const SnackBar(content: Text("로그인 실패")),
       );
+    }
+  }
+
+  Future<void> _loginWithQr() async {
+    final qrValue = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const QRScannerPage()),
+    );
+
+    if (qrValue != null) {
+      final success = await _loginUsecase.qrExecute(qrValue);
+
+      if (success && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainPage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("QR 로그인 실패")),
+        );
+      }
     }
   }
 
@@ -41,93 +64,87 @@ class _LoginPageState extends State<LoginPage> {
     final Color mainGreen = const Color(0xFF4CAF50);
 
     return Scaffold(
+      resizeToAvoidBottomInset: true, // 키보드 올라올 때 화면 자동 조정
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
+          // 👈 overflow 방지
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 32),
+              const SizedBox(height: 64),
               Text(
-                'Green',
+                "Green Whisper",
                 style: TextStyle(
                   color: mainGreen,
-                  fontSize: 40,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Whisper',
-                style: TextStyle(
-                  color: mainGreen,
-                  fontSize: 40,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 48),
-              const Text("이메일"),
-              const SizedBox(height: 8),
+
+              // 이메일 입력
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
-                  hintText: '이메일을 입력하세요',
+                  hintText: '이메일 입력',
                   border: OutlineInputBorder(),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text("비밀번호"),
-              const SizedBox(height: 8),
+
+              // 비밀번호 입력
               TextField(
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(
-                  hintText: '비밀번호를 입력하세요',
+                  hintText: '비밀번호 입력',
                   border: OutlineInputBorder(),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 ),
               ),
               const SizedBox(height: 32),
+
+              // 로그인 버튼
               SizedBox(
                 width: double.infinity,
-                height: 50,
+                height: 48,
                 child: ElevatedButton(
+                  onPressed: _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainGreen,
-                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  onPressed: _login,
                   child: const Text("로그인"),
                 ),
               ),
-              const SizedBox(height: 20),
-              Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextButton(
-                      onPressed: () {},
-                      child:
-                          Text("비밀번호 찾기", style: TextStyle(color: mainGreen)),
-                    ),
-                    const Text("|", style: TextStyle(color: Colors.grey)),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SignupPage()),
-                        );
-                      },
-                      child: Text("회원가입", style: TextStyle(color: mainGreen)),
-                    ),
-                  ],
+              const SizedBox(height: 12),
+
+              // QR 로그인 버튼
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton(
+                  onPressed: _loginWithQr,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: mainGreen),
+                  ),
+                  child: Text("QR 로그인", style: TextStyle(color: mainGreen)),
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // 회원가입 버튼
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SignupStep1Page()),
+                  );
+                },
+                child: Text("회원가입", style: TextStyle(color: mainGreen)),
+              ),
+
+              const SizedBox(height: 64), // 👈 하단 여유 공간
             ],
           ),
         ),
