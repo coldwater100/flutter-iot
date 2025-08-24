@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'featuers/auth/presentation/login_page.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'app_providers.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: globalProviders,
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'friend_profile.dart';
 
 class CommunityPage extends StatelessWidget {
   const CommunityPage({super.key});
@@ -65,9 +66,14 @@ class CommunityPage extends StatelessWidget {
                       imagePath: post["image"]!,
                       title: post["title"]!,
                       content: post["content"]!,
+                      // 피드 탭
                       onVisit: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("${post["title"]}님 페이지 방문")),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                FriendProfilePage(nickname: post["title"]!),
+                          ),
                         );
                       },
                       onAddFriend: () {
@@ -91,9 +97,12 @@ class CommunityPage extends StatelessWidget {
                         title: Text(friend["nickname"]!),
                         trailing: TextButton(
                           onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text("${friend["nickname"]}님 방문")),
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => FriendProfilePage(
+                                    nickname: friend["nickname"]!),
+                              ),
                             );
                           },
                           child: const Text("방문"),
