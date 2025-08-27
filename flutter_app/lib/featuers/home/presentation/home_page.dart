@@ -1,7 +1,8 @@
 import 'dart:math';
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // ✅ 햅틱
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../chat/presentation/chat_page.dart';
@@ -28,22 +29,28 @@ class _HomePageState extends State<HomePage> {
   double _startDx = 0;
   int _startIndex = 0;
 
-  // ✅ 네트워크 서비스
   late final NetworkService _networkService;
+  StreamSubscription<Event>? _eventSub;
 
-  // 🌱 이미지 시퀀스 (1~50)
+  // 🌱 이미지 시퀀스 (총 36장)
   final List<String> plantImages = List.generate(
-    50,
-    (i) => 'assets/image_sequence/plant_${i + 1}.png',
+    36,
+    (i) => 'assets/image_sequence/dir0_${i.toString().padLeft(2, '0')}.jpg',
   );
 
-  int _currentIndex = 0; // 👉 시작: plant_1.png
+  // 🌱 표정 이미지 리스트
+  final List<String> plantFaces = [
+    'assets/plant_face/1.png',
+    'assets/plant_face/2.png',
+    'assets/plant_face/3.png',
+  ];
 
-  // 버튼 홀드 상태 플래그
+  int _currentIndex = 0; // 👉 현재 표시 중인 시퀀스 인덱스
+  int _faceIndex = 0; // 👉 표정 인덱스 (네트워크 이벤트로 갱신)
+
   bool _isHoldingLeft = false;
   bool _isHoldingRight = false;
 
-  // ✅ ChatPage 열림 여부 플래그
   bool _isChatOpen = false;
 
   @override
@@ -52,23 +59,37 @@ class _HomePageState extends State<HomePage> {
     _plantService = PlantService(PlantRepository());
     currentQuote = _plantService.getRandomQuote();
 
-    // ✅ 네트워크 서비스 가져오기 (context 사용은 frame 이후 안전)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _networkService = context.read<NetworkService>();
 
-      // ✅ 이벤트 구독
-      _networkService.eventStream.listen((Event event) {
+      _eventSub = _networkService.eventStream.listen((Event event) {
         print(
-            "🎯 [HomePage] Event received: type=${event.type}, action=${event.action}");
+            "[HomePage] Event received: event=${event.event}, value=${event.value}, source=${event.source}");
 
-        if (event.type == "event" && event.action == "plant_pressed") {
+        if (event.event == "plant_touch") {
           if (mounted) _onPlantPressed();
+        }
+
+        if (event.event == "plant_face") {
+          final face = int.tryParse(event.value ?? '0') ?? 0;
+          if (face >= 0 && face < plantFaces.length) {
+            print("😀 얼굴 인덱스 업데이트: $face");
+            setState(() {
+              _faceIndex = face;
+            });
+          }
         }
       });
     });
   }
 
-  /// ❤️ 하트 즉시 제거
+  @override
+  void dispose() {
+    _eventSub?.cancel();
+    _removeHeartImmediately();
+    super.dispose();
+  }
+
   void _removeHeartImmediately() {
     if (_heartOverlay != null) {
       _heartOverlay!.remove();
@@ -76,7 +97,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// ❤️ 하트 애니메이션
   void _showHeartNearPlant() {
     final overlay = Overlay.of(context);
     if (overlay == null) return;
@@ -116,42 +136,36 @@ class _HomePageState extends State<HomePage> {
     overlay.insert(_heartOverlay!);
 
     Future.delayed(const Duration(seconds: 1), () {
-      _removeHeartImmediately();
+      if (mounted) _removeHeartImmediately();
     });
   }
 
-  /// 🌱 식물 버튼 → 랜덤 문구 + 하트 + Jetson 이벤트 전송
   void _onPlantPressed() {
     setState(() {
       currentQuote = _plantService.getQuoteForPlant();
     });
 
-    // ✅ Jetson으로 이벤트 전송
-    final msg = jsonEncode(
-        {"type": "event", "action": "plant_pressed", "source": "flutter"});
+    final msg =
+        jsonEncode({"event": "plant_touch", "value": "", "source": "flutter"});
     _networkService.sendWSMessage(msg);
     print("📤 [HomePage] Sent to Jetson: $msg");
 
-    // ✅ ChatPage가 열려있지 않을 때만 하트 표시
     if (!_isChatOpen) {
       _showHeartNearPlant();
     }
   }
 
-  /// 💬 채팅 버튼
   void _onChatPressed() {
     _removeHeartImmediately();
-    _isChatOpen = true; // ✅ 채팅화면 열림
+    _isChatOpen = true;
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const ChatPage()),
     ).then((_) {
-      // ✅ 닫히면 다시 false
       _isChatOpen = false;
     });
   }
 
-  /// 😀 웃는 버튼 → plant_1.png 로 이동
   Future<void> _animateToIndex(int targetIndex) async {
     int total = plantImages.length;
     int current = _currentIndex;
@@ -164,6 +178,7 @@ class _HomePageState extends State<HomePage> {
 
     for (int i = 1; i <= steps; i++) {
       await Future.delayed(const Duration(milliseconds: 60));
+      if (!mounted) return;
       setState(() {
         if (goForward) {
           _currentIndex = (_currentIndex + 1) % total;
@@ -174,7 +189,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// ✅ 강한 햅틱
   Future<void> _vibrateStrong() async {
     for (int i = 0; i < 3; i++) {
       HapticFeedback.vibrate();
@@ -182,30 +196,28 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// ⬅️ 왼쪽 버튼 롱클릭 동작
   void _onLeftHoldStart() async {
     _isHoldingLeft = true;
-    while (_isHoldingLeft) {
+    while (_isHoldingLeft && mounted) {
       setState(() {
         _currentIndex =
             (_currentIndex - 1 + plantImages.length) % plantImages.length;
       });
       for (int i = 0; i < 20; i++) {
-        if (!_isHoldingLeft) return;
+        if (!_isHoldingLeft || !mounted) return;
         await Future.delayed(const Duration(milliseconds: 10));
       }
     }
   }
 
-  /// ➡️ 오른쪽 버튼 롱클릭 동작
   void _onRightHoldStart() async {
     _isHoldingRight = true;
-    while (_isHoldingRight) {
+    while (_isHoldingRight && mounted) {
       setState(() {
         _currentIndex = (_currentIndex + 1) % plantImages.length;
       });
       for (int i = 0; i < 20; i++) {
-        if (!_isHoldingRight) return;
+        if (!_isHoldingRight || !mounted) return;
         await Future.delayed(const Duration(milliseconds: 10));
       }
     }
@@ -223,7 +235,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 16),
               const Text(
-                'GREEN WHISPER',
+                'Green Whisper',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -231,17 +243,13 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 12),
-
-              // 🌱 이미지 + 좌우 버튼 + 웃는 버튼
               Center(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final imageWidth = constraints.maxWidth * 0.6;
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // ⬅️ 왼쪽 버튼
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -260,10 +268,7 @@ class _HomePageState extends State<HomePage> {
                           child: const Icon(Icons.arrow_left,
                               size: 40, color: Colors.black54),
                         ),
-
                         const SizedBox(width: 12),
-
-                        // 🌱 식물 이미지
                         GestureDetector(
                           key: _plantKey,
                           onTap: _onPlantPressed,
@@ -299,12 +304,29 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 IndexedStack(
                                   index: _currentIndex,
-                                  children: plantImages
-                                      .map((path) => Image.asset(path,
-                                          fit: BoxFit.contain))
-                                      .toList(),
+                                  children:
+                                      List.generate(plantImages.length, (i) {
+                                    if (i == 0) {
+                                      // 👉 시작 또는 웃는 버튼 눌러서 0번일 때는 plant_face, 아니면 시퀀스 0번
+                                      if (_currentIndex == 0) {
+                                        return Image.asset(
+                                          plantFaces[_faceIndex],
+                                          fit: BoxFit.contain,
+                                        );
+                                      } else {
+                                        return Image.asset(
+                                          plantImages[0],
+                                          fit: BoxFit.contain,
+                                        );
+                                      }
+                                    } else {
+                                      return Image.asset(
+                                        plantImages[i],
+                                        fit: BoxFit.contain,
+                                      );
+                                    }
+                                  }),
                                 ),
-                                // 😀 웃는 버튼
                                 Positioned(
                                   bottom: 8,
                                   right: 8,
@@ -322,10 +344,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                         ),
-
                         const SizedBox(width: 12),
-
-                        // ➡️ 오른쪽 버튼
                         GestureDetector(
                           onTap: () {
                             setState(() {
@@ -348,15 +367,12 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-
               const SizedBox(height: 16),
               Text(
                 '“$currentQuote”',
                 style: const TextStyle(fontSize: 16),
               ),
-
               const SizedBox(height: 16),
-
               IconButton(
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
@@ -367,10 +383,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onPressed: _onChatPressed,
               ),
-
               const SizedBox(height: 32),
-
-              // 📊 센서 카드들
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GridView.count(
@@ -397,7 +410,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// 📊 센서 카드 빌더
   Widget _buildSensorCard(String iconPath, String label, String value) {
     return Container(
       padding: const EdgeInsets.all(16),

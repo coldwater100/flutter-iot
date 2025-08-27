@@ -24,7 +24,7 @@ class FriendProfilePage extends StatelessWidget {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text("안녕하세요! 저의 식물 공간에 방문해주셔서 감사합니다 🌱"),
+            const Text("안녕하세요! 저의 식물 공간에 방문해주셔서 감사합니다"),
             const SizedBox(height: 20),
             const Text(
               "방명록",
@@ -41,7 +41,7 @@ class FriendProfilePage extends StatelessWidget {
                   Card(
                       child: Padding(
                           padding: EdgeInsets.all(12),
-                          child: Text("화분 너무 예뻐요 🌿"))),
+                          child: Text("화분 너무 예뻐요"))),
                 ],
               ),
             ),

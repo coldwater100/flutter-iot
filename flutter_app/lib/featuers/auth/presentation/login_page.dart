@@ -25,7 +25,9 @@ class _LoginPageState extends State<LoginPage> {
 
     final success = await _loginUsecase.execute(email, password);
 
-    if (success && mounted) {
+    if (!mounted) return; // 👈 위젯이 살아있는지 확인
+
+    if (success) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MainPage()),
@@ -43,10 +45,14 @@ class _LoginPageState extends State<LoginPage> {
       MaterialPageRoute(builder: (_) => const QRScannerPage()),
     );
 
+    if (!mounted) return; // 👈 위젯이 살아있는지 확인
+
     if (qrValue != null) {
       final success = await _loginUsecase.qrExecute(qrValue);
 
-      if (success && mounted) {
+      if (!mounted) return; // 👈 추가
+
+      if (success) {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (_) => const MainPage()),

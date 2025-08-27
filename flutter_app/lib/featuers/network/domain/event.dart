@@ -1,22 +1,34 @@
 class Event {
-  final String type;
-  final String? action;
+  final String event; // ✅ 'type' → 'event'
+  final String? value; // ✅ 'action' → 'value'
   final String? source;
-  final dynamic data;
 
   Event({
-    required this.type,
-    this.action,
+    required this.event,
+    this.value,
     this.source,
-    this.data,
   });
 
+  /// JSON → Event
   factory Event.fromJson(Map<String, dynamic> json) {
     return Event(
-      type: json['type'] ?? '',
-      action: json['action'],
-      source: json['source'],
-      data: json['data'],
+      event: json['event'] ?? '',
+      value: json['value'] as String?,
+      source: json['source'] as String?,
     );
+  }
+
+  /// Event → JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'event': event,
+      'value': value,
+      'source': source,
+    };
+  }
+
+  @override
+  String toString() {
+    return 'Event(event: $event, value: $value, source: $source)';
   }
 }

@@ -42,10 +42,8 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
     final Color mainGreen = const Color(0xFF4CAF50);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("성장 기록 보기"),
-        backgroundColor: mainGreen,
-      ),
+      backgroundColor: Colors.white, // ✅ 전체 배경 흰색
+      appBar: AppBar(title: const Text("성장 기록 보기"), backgroundColor: mainGreen),
       body: GestureDetector(
         onHorizontalDragEnd: _onHorizontalDragEnd,
         onVerticalDragEnd: _onVerticalDragEnd,
@@ -55,22 +53,30 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
             children: [
               Text(
                 "날짜: 2025-07-${15 + _horizontalIndex}",
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               Container(
                 width: 240,
                 height: 240,
                 decoration: BoxDecoration(
-                  color: Colors.grey[200],
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
-                  child: Text(
-                    "${recordTypes[_verticalIndex]} $_horizontalIndex",
-                    style: const TextStyle(fontSize: 24),
-                  ),
+                  // ✅ 캐릭터(0) 또는 식물 모습(1)일 때는 이미지 출력
+                  child: (_verticalIndex == 0 || _verticalIndex == 1)
+                      ? Image.asset(
+                          "assets/images/grow${_horizontalIndex + 1}.png",
+                          fit: BoxFit.contain,
+                        )
+                      : Text(
+                          "${recordTypes[_verticalIndex]} $_horizontalIndex",
+                          style: const TextStyle(fontSize: 24),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -78,10 +84,7 @@ class _RecordDetailPageState extends State<RecordDetailPage> {
                 "↑↓ ${recordTypes[_verticalIndex]} 변경",
                 style: const TextStyle(color: Colors.grey),
               ),
-              const Text(
-                "←→ 날짜 변경",
-                style: TextStyle(color: Colors.grey),
-              ),
+              const Text("←→ 날짜 변경", style: TextStyle(color: Colors.grey)),
             ],
           ),
         ),

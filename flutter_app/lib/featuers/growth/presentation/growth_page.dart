@@ -17,14 +17,14 @@ class GrowthPage extends StatelessWidget {
         date: "2025-07-15",
         title: "흰가루병 의심",
         description: "잎에 하얀 가루가 번짐. 곰팡이 초기 감염 가능성.",
-        imagePath: "assets/images/plant_disease1.png",
+        imagePath: "assets/images/disease1.png",
       ),
       DiseaseEntity(
         id: "2",
         date: "2025-08-01",
         title: "잎마름병 의심",
         description: "잎 끝이 갈변하며 마름. 세균성 질환 가능성.",
-        imagePath: "assets/images/plant_disease2.png",
+        imagePath: "assets/images/disease2.png",
       ),
     ];
 
@@ -34,13 +34,14 @@ class GrowthPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                'assets/images/KakaoTalk_20250822_171512122_13.png',
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 24), // 👈 상단 여백 추가
+            // ClipRRect(
+            //   borderRadius: BorderRadius.circular(16),
+            //   child: Image.asset(
+            //     'assets/images/KakaoTalk_20250822_171512122_13.png',
+            //   ),
+            // ),
+            // const SizedBox(height: 24),
 
             const Text(
               "성장 분석 리포트",
