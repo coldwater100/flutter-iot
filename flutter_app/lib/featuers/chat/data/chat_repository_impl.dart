@@ -3,7 +3,7 @@ import '../domain/chat_message.dart';
 
 class ChatRepositoryImpl implements ChatRepository {
   final List<ChatMessage> _messages = [
-    ChatMessage(sender: "plant", text: "안녕! 나는 너의 몬스테라 친구야."),
+    ChatMessage(sender: "plant", text: "안녕! 나는 너의 호야 친구야."),
   ];
 
   @override

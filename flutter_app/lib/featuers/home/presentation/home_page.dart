@@ -397,8 +397,7 @@ class _HomePageState extends State<HomePage> {
                         'assets/icons/thermometer.png', '온도', '25℃'),
                     _buildSensorCard('assets/icons/soil.png', '토양 습도', '68%'),
                     _buildSensorCard('assets/icons/sun.png', '조도', '950 Lux'),
-                    _buildSensorCard(
-                        'assets/icons/humidity.png', '공기 습도', '60%'),
+                    _buildSensorCard('assets/icons/PH.png', 'PH', '5.9'),
                   ],
                 ),
               ),

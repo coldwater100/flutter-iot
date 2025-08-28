@@ -41,7 +41,7 @@ class _CommunityPageState extends State<CommunityPage> {
   bool isEditingIntro = false;
   final TextEditingController _introController = TextEditingController();
 
-  final hashtags = ["#몬스테라", "#스투키", "#다육이", "#초보식집사", "#플랜트러버"];
+  final hashtags = ["#호야", "#스투키", "#다육이", "#초보식집사", "#플랜트러버"];
   final Set<String> selectedTags = {};
 
   @override

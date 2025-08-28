@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "com.example.flutter_app_android"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+
+    // ✅ NDK 버전 강제 (플러그인 요구사항 맞춤)
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -20,10 +22,7 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.example.flutter_app_android"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
@@ -31,10 +30,25 @@ android {
     }
 
     buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+        getByName("release") {
+            // ✅ 코드 난독화 & 리소스 최적화
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            // ✅ ProGuard 규칙 파일 적용
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+
+            // ✅ 스토어 배포 전까진 debug 서명 사용 가능
             signingConfig = signingConfigs.getByName("debug")
+        }
+
+        getByName("debug") {
+            // debug 빌드는 난독화 X
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }

@@ -19,7 +19,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   void initState() {
     super.initState();
-    scannerController.start();
+
+    // ✅ MobileScannerController 강제 시작
+    scannerController.controller.start();
+
+    // ✅ 타임아웃 처리
     timeoutTimer = Timer(const Duration(seconds: 15), () {
       if (!mounted || isScanned) return;
       Fluttertoast.showToast(msg: 'QR 스캔 실패: 시간이 초과되었습니다');
@@ -31,7 +35,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
   void dispose() {
     timeoutTimer?.cancel();
     try {
-      scannerController.stop();
+      scannerController.controller.stop();
       scannerController.dispose();
     } catch (e) {
       debugPrint("QRScanner dispose error: $e");
@@ -45,31 +49,34 @@ class _QRScannerPageState extends State<QRScannerPage> {
     timeoutTimer?.cancel();
 
     try {
-      scannerController.stop();
+      scannerController.controller.stop();
     } catch (_) {}
 
-    Navigator.pop(context, qrText); // QR 값 반환
+    Navigator.pop(context, qrText); // ✅ 스캔된 QR 값 반환
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) return;
+    return WillPopScope(
+      onWillPop: () async {
         try {
-          scannerController.stop();
+          scannerController.controller.stop();
           scannerController.dispose();
         } catch (_) {}
+        return true;
       },
       child: Scaffold(
         appBar: AppBar(title: const Text('QR 코드 스캔')),
         body: MobileScanner(
           controller: scannerController.controller,
           onDetect: (capture) {
-            final code = capture.barcodes.firstOrNull?.rawValue;
-            if (code != null) {
-              _onQRCodeScanned(code);
+            if (isScanned) return;
+            final barcodes = capture.barcodes;
+            if (barcodes.isNotEmpty) {
+              final code = barcodes.first.rawValue;
+              if (code != null) {
+                _onQRCodeScanned(code);
+              }
             }
           },
         ),

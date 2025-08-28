@@ -22,7 +22,7 @@ class _ChatPageState extends State<ChatPage> {
 
   final List<String> userScript = [
     "나는 오늘 좀 행복해!",
-    "좋은 일이 있었어. 시험도 잘 보고, 친구랑 놀았거든!",
+    "좋은 일이 있었어. 시험도 잘 보고, 맜았는거 먹었어!",
     "오늘은 맛있는 소고기를 먹었어.",
     "응, 구워서 먹었어! 진짜 맛있었어!"
   ];

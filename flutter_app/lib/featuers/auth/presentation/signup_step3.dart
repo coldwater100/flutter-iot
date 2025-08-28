@@ -84,20 +84,23 @@ class _SignupStep3PageState extends State<SignupStep3Page> {
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.all(16),
-        child: SizedBox(
-          width: double.infinity,
-          height: 48,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: mainGreen),
-            onPressed: (_state == SignupProcessState.done)
-                ? () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("회원가입 완료!")),
-                    );
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                  }
-                : null,
-            child: const Text("회원가입 완료"),
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 16), // 👈 하단 여백 추가
+          child: SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: mainGreen),
+              onPressed: (_state == SignupProcessState.done)
+                  ? () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("회원가입 완료!")),
+                      );
+                      Navigator.popUntil(context, (route) => route.isFirst);
+                    }
+                  : null,
+              child: const Text("회원가입 완료"),
+            ),
           ),
         ),
       ),
@@ -156,7 +159,7 @@ class _SignupStep3PageState extends State<SignupStep3Page> {
             const SizedBox(height: 8),
             ClipOval(
               child: Image.asset(
-                _characterPath ?? "assets/images/plant_face.png",
+                _characterPath ?? "assets/plant_face/2.png",
                 width: 100,
                 height: 100,
                 fit: BoxFit.cover,

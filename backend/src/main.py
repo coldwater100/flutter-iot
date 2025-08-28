@@ -8,12 +8,12 @@ app = FastAPI()
 active_connections: List[WebSocket] = []
 
 # 브로드캐스트 함수
-async def broadcast(message: dict, sender: WebSocket = None):
+async def broadcast(message: str, sender: WebSocket = None):
     disconnected = []
     for conn in active_connections:
         if conn != sender:  # 보낸 클라이언트 제외 가능
             try:
-                await conn.send_text(json.dumps(message))
+                await conn.send_text(message)  # ✅ 그대로 전송
             except Exception as e:
                 print(f"[WebSocket] Error sending: {e}")
                 disconnected.append(conn)
@@ -33,21 +33,8 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             print(f"[WebSocket] Received: {data}")
 
-            # 문자열을 dict로 변환 (잘못된 JSON이면 무시)
-            try:
-                parsed = json.loads(data)
-            except Exception as e:
-                print(f"[WebSocket] JSON decode error: {e}, raw={data}")
-                continue
-
-            if isinstance(parsed, dict):
-                # Flat JSON 구조로 브로드캐스트
-                message = {"type": "event", **parsed}
-            else:
-                # dict가 아니면 그냥 문자열/리스트 자체를 data로 묶음
-                message = {"type": "event", "data": parsed}
-
-            await broadcast(message, sender=websocket)
+            # 그대로 브로드캐스트 (가공 없음)
+            await broadcast(data, sender=websocket)
 
     except Exception as e:
         print(f"[WebSocket] Connection closed: {e}")
